@@ -39,7 +39,7 @@ run_script() {
   echo "Executing script on remote host..."
   sshpass -p "$PASSWORD" ssh centos@"${HOST}" "
     chmod +x ${REMOTE_PATH} &&
-    bash ${REMOTE_PATH}
+    cd /tmp && bash "${COMPONENT}.sh"
   "
 
   echo -e "${COL}SUCCESS:${NC} ${COMPONENT} script executed on ${HOST}"
