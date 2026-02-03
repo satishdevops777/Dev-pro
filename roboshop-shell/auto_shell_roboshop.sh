@@ -34,7 +34,7 @@ run_script() {
   fi
 
   echo "Copying script to remote host..."
-  sshpass -p "$PASSWORD" scp "${COMPONENT}.sh" centos@"${HOST}":/tmp/
+  sshpass -p "$PASSWORD" scp "${COMPONENT}.sh" roboshop.conf centos@"${HOST}":/tmp/
 
   echo "Executing script on remote host..."
   sshpass -p "$PASSWORD" ssh centos@"${HOST}" "
