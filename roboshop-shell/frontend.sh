@@ -1,9 +1,4 @@
-#!/bin/bash
-set -e
-
-COL="\e[32m"
-NC="\e[0m"
-LOG=/tmp/roboshop.log
+source common.sh
 
 echo -e "${COL}Install Nginx${NC}"
 sudo dnf install nginx -y &>>${LOG}
@@ -12,10 +7,10 @@ echo -e "${COL}Remove Default Web Content${NC}"
 sudo rm -rf /usr/share/nginx/html/* &>>${LOG}
 
 echo -e "${COL}Download Frontend Artifacts${NC}"
-sudo curl -o /tmp/frontend.zip https://roboshop-artifacts.s3.amazonaws.com/frontend.zip &>>${LOG}
+sudo curl -o /tmp/$1.zip https://roboshop-artifacts.s3.amazonaws.com/$1.zip &>>${LOG}
 
 echo -e "${COL}Extract Frontend Content${NC}"
-sudo unzip /tmp/frontend.zip -d /usr/share/nginx/html &>>${LOG}
+sudo unzip /tmp/$1.zip -d /usr/share/nginx/html &>>${LOG}
 
 echo -e "${COL}Create Reverse Proxy Configuration${NC}"
 sudo cp roboshop.conf /etc/nginx/default.d/roboshop.conf &>>${LOG}
