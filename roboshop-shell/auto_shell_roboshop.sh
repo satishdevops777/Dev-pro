@@ -47,3 +47,5 @@ run_script() {
 
 # ---------- Run ----------
 run_script
+
+# Run Script "auto_shell_roboshop.sh frontend DevOps321"
