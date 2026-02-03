@@ -1,26 +1,27 @@
-#!/bin/bash 
+#!/bin/bash
 set -e
 
 COL="\e[32m"
 NC="\e[0m"
+LOG=/tmp/roboshop.log
 
 echo -e "${COL}Install Nginx${NC}"
-dnf install nginx -y &>>/tmp/roboshop.log
+sudo dnf install nginx -y &>>${LOG}
 
 echo -e "${COL}Remove Default Web Content${NC}"
-rm -rf /usr/share/nginx/html/*
+sudo rm -rf /usr/share/nginx/html/* &>>${LOG}
 
 echo -e "${COL}Download Frontend Artifacts${NC}"
-curl -o /tmp/frontend.zip https://roboshop-artifacts.s3.amazonaws.com/frontend.zip &>>/tmp/roboshop.log
+curl -o /tmp/frontend.zip https://roboshop-artifacts.s3.amazonaws.com/frontend.zip &>>${LOG}
 
 echo -e "${COL}Extract Frontend Content${NC}"
-cd /usr/share/nginx/html &>>/tmp/roboshop.log
-unzip /tmp/frontend.zip &>>/tmp/roboshop.log
-
+sudo unzip /tmp/frontend.zip -d /usr/share/nginx/html &>>${LOG}
 
 echo -e "${COL}Create Reverse Proxy Configuration${NC}"
-cp roboshop.conf /etc/nginx/default.d/roboshop.conf &>>/tmp/roboshop.log
+sudo cp roboshop.conf /etc/nginx/default.d/roboshop.conf &>>${LOG}
 
 echo -e "${COL}Enable & Restart Nginx Service${NC}"
-systemctl start nginx &>>/tmp/roboshop.log
-systemctl enable nginx &>>/tmp/roboshop.log
+sudo systemctl enable nginx &>>${LOG}
+sudo systemctl restart nginx &>>${LOG}
+
+echo -e "${COL}Frontend setup completed successfully${NC}"
