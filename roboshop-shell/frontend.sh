@@ -22,5 +22,5 @@ echo -e "${COL}Create Reverse Proxy Configuration${NC}"
 cp roboshop.conf /etc/nginx/default.d/roboshop.conf &>>/tmp/roboshop.log
 
 echo -e "${COL}Enable & Restart Nginx Service${NC}"
+systemctl start nginx &>>/tmp/roboshop.log
 systemctl enable nginx &>>/tmp/roboshop.log
-systemctl restart nginx &>>/tmp/roboshop.log
