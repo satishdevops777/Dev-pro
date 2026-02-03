@@ -2,6 +2,8 @@
 
 set -e
 
+echo "AUTO GIT RUN $(date)" >> C:/Users/satis/OneDrive/Desktop/Dev-pro/auto-git.log
+
 BRANCH=$(git branch --show-current)
 MSG="auto-commit $(date '+%Y-%m-%d %H:%M:%S')"
 
