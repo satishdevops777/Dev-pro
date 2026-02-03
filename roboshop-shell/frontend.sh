@@ -12,7 +12,7 @@ echo -e "${COL}Remove Default Web Content${NC}"
 sudo rm -rf /usr/share/nginx/html/* &>>${LOG}
 
 echo -e "${COL}Download Frontend Artifacts${NC}"
-curl -o /tmp/frontend.zip https://roboshop-artifacts.s3.amazonaws.com/frontend.zip &>>${LOG}
+sudo curl -o /tmp/frontend.zip https://roboshop-artifacts.s3.amazonaws.com/frontend.zip &>>${LOG}
 
 echo -e "${COL}Extract Frontend Content${NC}"
 sudo unzip /tmp/frontend.zip -d /usr/share/nginx/html &>>${LOG}
