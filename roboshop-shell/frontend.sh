@@ -1,8 +1,8 @@
 #!/bin/bash 
 set -e
 
-COL = "\e[32m"
-NC = "\e[0m"
+COL="\e[32m"
+NC="\e[0m"
 
 echo -e "${COL}Install Nginx${NC}"
 dnf install nginx -y &>>/tmp/roboshop.log
