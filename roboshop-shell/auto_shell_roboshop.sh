@@ -18,10 +18,9 @@ run_script() {
 
   sshpass -p "$PASSWORD" scp ${COMPONENT}.sh centos@${HOST}:/tmp/
 
-  sshpass -p "$PASSWORD" ssh centos@${HOST} "
+  sshpass -p "$PASSWORD" ssh centos@${HOST}"
     chmod +x /tmp/${COMPONENT}.sh &&
     bash /tmp/${COMPONENT}.sh
-  "
 }
 
 run_script "$1" "$2"
