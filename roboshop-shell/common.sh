@@ -93,13 +93,15 @@ maven_setup() {
 }
 
 python_setup() {
-echo -e "${COL}Install Python 3.6 and dependencies${NC}"
-dnf install python36 gcc python3-devel -y &>>${LOG}
+  echo -e "${COL}Install Python 3.6 and dependencies${NC}"
+  dnf install python36 gcc python3-devel -y &>>${LOG}
 
-app_presetup
+  app_presetup
 
-echo -e "${COL}Install Application Dependencies${NC}"
-pip3.6 install -r requirements.txt &>>${LOG}
+  echo -e "${COL}Install Application Dependencies${NC}"
+  pip3.6 install -r requirements.txt &>>${LOG}
+
+  systemd_setup
 }
 
 go_setup() {
@@ -111,7 +113,32 @@ go_setup() {
   echo -e "${COL}Download Go Dependencies${NC}"
   go mod init dispatch &>>${LOG}
   go get &>>${LOG}
+
+  systemd_setup
 }
+
+
+rabbitmq() {
+  echo -e "${COL}Configure YUM Repos from the script${NC}"
+  curl -s https://packagecloud.io/install/repositories/rabbitmq/erlang/script.rpm.sh | bash &>>${LOG}
+
+  echo -e "${COL}Configure YUM Repos for RabbitMQ${NC}"
+  curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.rpm.sh | bash &>>&{LOG}
+
+  echo -e "${COL}Install RabbitMQ Server${NC}"
+  dnf install rabbitmq-server -y &>>&{LOG}
+
+  echo -e "${COL}Enable & Start RabbitMQ Service${NC}"
+  systemctl enable --now rabbitmq-server &>>&{LOG}
+  systemctl start rabbitmq-server &>>&{LOG}
+
+  echo -e "${COL}Add Application User to RabbitMQ${NC}"
+  rabbitmqctl add_user roboshop roboshop123 &>>&{LOG}
+  rabbitmqctl set_permissions -p / roboshop ".*" ".*" ".*" &>>&{LOG}
+
+  echo -e "${COL}RabbitMQ setup completed successfully${NC}"
+}
+
 
 systemd_setup () {
   echo -e "${COL}Start $1 Service${NC}"
