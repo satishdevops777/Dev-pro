@@ -4,150 +4,127 @@ set -e
 COL="\e[32m"
 NC="\e[0m"
 LOG=/tmp/roboshop.log
+SERVICE=$1
 
+if [ -z "$SERVICE" ]; then
+  echo "Usage: $0 <service-name>"
+  exit 1
+fi
 
-nodejs () {
-  echo -e "${COL}Enable nodejs repo${NC}"
-  dnf module disable nodejs -y &>>${LOG}
-  dnf module enable nodejs:18 -y &>>${LOG}
-
-  echo -e "${COL}Install nodejs${NC}"
-  dnf install nodejs -y &>>${LOG}
-
-  app_presetup
-
-  echo -e "${COL}Install Application Dependencies${NC}"
-  npm install &>>${LOG}
-}
+echo -e "${COL}Starting setup for ${SERVICE}${NC}"
 
 add_user () {
-  echo -e "${COL}Add Application User${NC}"
   if ! id roboshop &>>${LOG}; then
     useradd -r roboshop &>>${LOG}
-    echo -e "${COL}User roboshop created${NC}"
-  else
-    echo -e "${COL}User roboshop already exists${NC}"
   fi
 }
 
-
 app_presetup () {
   add_user
-  echo -e "${COL}Create Application Directory${NC}"
-  mkdir /app &>>${LOG}
 
-  echo -e "${COL}Download Application Content${NC}"
-  curl -L -o /tmp/$1.zip https://roboshop-artifacts.s3.amazonaws.com/$1.zip 
-  cd /app &>>${LOG}
-  unzip /tmp/$1.zip &>>&${LOG}
+  echo -e "${COL}Preparing application directory${NC}"
+  mkdir -p /app &>>${LOG}
+  rm -rf /app/*
 
-  echo -e "${COL}Setup SystemD Service${NC}"
-  cp $1.service /etc/systemd/system/$1.service &>>${LOG}
+  echo -e "${COL}Downloading application content${NC}"
+  curl -L -o /tmp/${SERVICE}.zip https://roboshop-artifacts.s3.amazonaws.com/${SERVICE}.zip &>>${LOG}
+
+  cd /app
+  unzip /tmp/${SERVICE}.zip &>>${LOG}
+
+  echo -e "${COL}Setting up systemd service${NC}"
+  cp ${SERVICE}.service /etc/systemd/system/${SERVICE}.service &>>${LOG}
+}
+
+systemd_setup () {
+  systemctl daemon-reload &>>${LOG}
+  systemctl enable --now ${SERVICE} &>>${LOG}
+  systemctl restart ${SERVICE} &>>${LOG}
+}
+
+nodejs () {
+  echo -e "${COL}Installing NodeJS${NC}"
+  dnf module disable nodejs -y &>>${LOG}
+  dnf module enable nodejs:18 -y &>>${LOG}
+  dnf install nodejs unzip curl -y &>>${LOG}
+
+  app_presetup
+
+  echo -e "${COL}Installing NodeJS dependencies${NC}"
+  npm install &>>${LOG}
+
+  systemd_setup
 }
 
 mongodb_setup () {
-  echo -e "${COL}Add Mongodb Repo File${NC}"
-  cp mongod.repo /etc/yum.repos.d/mongod.repo &>>${LOG}
-
-  echo -e "${COL}Install Mongodb${NC}"
-  sudo dnf install mongodb-org -y  &>>${LOG}
+  echo -e "${COL}Installing MongoDB${NC}"
+  cp mongo.repo /etc/yum.repos.d/mongo.repo &>>${LOG}
+  dnf install mongodb-org -y &>>${LOG}
+  systemctl enable --now mongod
 }
 
-mysql_setup() {
-  echo -e "${COL}Enable $1 repo${NC}"
-  dnf module disable $1 -y &>>${LOG}   
+mysql_setup () {
+  echo -e "${COL}Installing MySQL${NC}"
+  dnf module disable mysql -y &>>${LOG}
+  cp mysql.repo /etc/yum.repos.d/mysql.repo &>>${LOG}
 
-  echo -e "${COL}Add $1 repo file${NC}"
-  cp $1.repo /etc/yum.repos.d/$1.repo &>>${LOG}
-
-  echo -e "${COL}Install $1 Server${NC}"
-  dnf install $1-community-server -y &>>${LOG}
-
-  echo -e "${COL}Enable & Start $1 Service${NC}"
+  dnf install mysql-community-server -y &>>${LOG}
   systemctl enable --now mysqld &>>${LOG}
-  systemctl start mysqld &>>${LOG}
- 
-  echo -e "${COL}Reset $1 root password${NC}"
+
   mysql_secure_installation --set-root-pass RoboShop@1 &>>${LOG}
-
-  echo -e "${COL}Validate $1 Installation${NC}"
-  mysql -uroot -pRoboShop@1 -e "show databases;" &>>${LOG} 
 }
 
-redis_setup() {
-echo -e "${COL}Enable $1 repo${NC}"
-dnf module disable $1 -y &>>${LOG}
-dnf module enable $1:6 -y &>>${LOG}
+redis_setup () {
+  echo -e "${COL}Installing Redis${NC}"
+  dnf module disable redis -y &>>${LOG}
+  dnf module enable redis:6 -y &>>${LOG}
+  dnf install redis -y &>>${LOG}
 
-echo -e "${COL}Install $1${NC}"
-dnf install $1 -y &>>${LOG}  
-
-echo -e "${COL}Update $1 Configuration to listen on all interfaces${NC}"
-sed -i -e 's/127.0.0.0/0.0.0.0/' /etc/$1.conf /etc/$1/$1.conf &>>${LOG}
+  sed -i 's/127.0.0.1/0.0.0.0/' /etc/redis.conf &>>${LOG}
+  systemctl enable --now redis &>>${LOG}
 }
 
-
-maven_setup() {
-  echo -e "${COL}Install Maven${NC}"
-  dnf install maven -y &>>${LOG}
+maven_setup () {
+  echo -e "${COL}Installing Maven${NC}"
+  dnf install maven unzip curl -y &>>${LOG}
 
   app_presetup
+  mvn clean package &>>${LOG}
+
+  systemd_setup
 }
 
-python_setup() {
-  echo -e "${COL}Install Python 3.6 and dependencies${NC}"
-  dnf install python36 gcc python3-devel -y &>>${LOG}
+python_setup () {
+  echo -e "${COL}Installing Python${NC}"
+  dnf install python36 gcc python3-devel unzip curl -y &>>${LOG}
 
   app_presetup
-
-  echo -e "${COL}Install Application Dependencies${NC}"
   pip3.6 install -r requirements.txt &>>${LOG}
 
   systemd_setup
 }
 
-go_setup() {
-  echo -e "${COL}Install Golang${NC}"
-  dnf install golang -y &>>${LOG}
+go_setup () {
+  echo -e "${COL}Installing Golang${NC}"
+  dnf install golang unzip curl -y &>>${LOG}
 
   app_presetup
-
-  echo -e "${COL}Download Go Dependencies${NC}"
-  go mod init dispatch &>>${LOG}
+  go mod init ${SERVICE} &>>${LOG}
   go get &>>${LOG}
 
   systemd_setup
 }
 
-
-rabbitmq() {
-  echo -e "${COL}Configure YUM Repos from the script${NC}"
+rabbitmq_setup () {
+  echo -e "${COL}Installing RabbitMQ${NC}"
   curl -s https://packagecloud.io/install/repositories/rabbitmq/erlang/script.rpm.sh | bash &>>${LOG}
+  curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.rpm.sh | bash &>>${LOG}
 
-  echo -e "${COL}Configure YUM Repos for RabbitMQ${NC}"
-  curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.rpm.sh | bash &>>&{LOG}
+  dnf install rabbitmq-server -y &>>${LOG}
+  systemctl enable --now rabbitmq-server &>>${LOG}
 
-  echo -e "${COL}Install RabbitMQ Server${NC}"
-  dnf install rabbitmq-server -y &>>&{LOG}
-
-  echo -e "${COL}Enable & Start RabbitMQ Service${NC}"
-  systemctl enable --now rabbitmq-server &>>&{LOG}
-  systemctl start rabbitmq-server &>>&{LOG}
-
-  echo -e "${COL}Add Application User to RabbitMQ${NC}"
-  rabbitmqctl add_user roboshop roboshop123 &>>&{LOG}
-  rabbitmqctl set_permissions -p / roboshop ".*" ".*" ".*" &>>&{LOG}
-
-  echo -e "${COL}RabbitMQ setup completed successfully${NC}"
+  rabbitmqctl add_user roboshop roboshop123 &>>${LOG} || true
+  rabbitmqctl set_permissions -p / roboshop ".*" ".*" ".*" &>>${LOG}
 }
 
-
-systemd_setup () {
-  echo -e "${COL}Start $1 Service${NC}"
-  systemctl daemon-reload &>>${LOG}
-  systemctl enable --now $1 &>>${LOG}
-  systemctl restart $1 &>>${LOG}
-}
-
-
-
+echo -e "${COL}Setup completed for ${SERVICE}${NC}"
