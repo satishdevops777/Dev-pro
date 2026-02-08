@@ -4,7 +4,7 @@
 ZONE_ID=$(aws route53 list-hosted-zones --query "HostedZones[*].{ID:Id,Name:Name,Private:Config.PrivateZone}" --output text | awk '{print $1}' | awk -F / '{print $3}')
 DOMAIN_NAME=$(aws route53 list-hosted-zones --query "HostedZones[*].{ID:Id,Name:Name,Private:Config.PrivateZone}" --output text | awk '{print $2}' | sed -e 's/.$//')
 SG_NAME="allow-all"
-AWS_REGION="us-west-2"
+AWS_REGION="us-east-1"
 #ENV="dev"
 #############################
 sudo rm -f /tmp/record.json
@@ -37,7 +37,7 @@ if [ -z "${SGID}" ]; then
 fi
 
 
-for component in catalogue cart user shipping payment frontend mongodb mysql rabbitmq redis dispatch; do
+for component in catalogue-a cart-a user-a shipping-a payment-a frontend-a mongodb-a mysql-a rabbitmq-a redis-a dispatch-a; do
   COMPONENT="${component}"
   create_ec2
 done
