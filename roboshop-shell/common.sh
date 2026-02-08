@@ -23,11 +23,13 @@ nodejs () {
 add_user () {
   echo -e "${COL}Add Application User${NC}"
   if ! id roboshop &>>${LOG}; then
-    useradd roboshop &>>${LOG} 
-  else 
+    useradd -r roboshop &>>${LOG}
+    echo -e "${COL}User roboshop created${NC}"
+  else
     echo -e "${COL}User roboshop already exists${NC}"
   fi
 }
+
 
 app_presetup () {
   add_user
