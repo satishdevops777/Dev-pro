@@ -33,7 +33,7 @@ app_presetup () {
   unzip /tmp/${SERVICE}.zip &>>${LOG}
 
   echo -e "${COL}Setting up systemd service${NC}"
-  cp ${SERVICE}.service /etc/systemd/system/${SERVICE}.service &>>${LOG}
+  cp /home/centos/Dev-pro/roboshop-shell/${SERVICE}.service /etc/systemd/system/${SERVICE}.service &>>${LOG}
 }
 
 systemd_setup () {
