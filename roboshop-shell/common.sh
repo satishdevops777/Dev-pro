@@ -87,7 +87,7 @@ nodejs () {
 
 mongodb_client_setup () {
   echo -e "${COL}Cpoying & Installing MongoDB Client${NC}"
-  cp /home/centos/roboshop-shell/mongodb.repo /etc/yum.repos.d/mongodb.repo &>>${LOG}
+  cp /home/centos/Dev-pro/roboshop-shell/mongodb.repo /etc/yum.repos.d/mongodb.repo &>>${LOG}
   stat_check $?
 
   dnf install mongodb-org-shell -y &>>${LOG}
