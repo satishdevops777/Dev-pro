@@ -47,6 +47,7 @@ app_presetup () {
   curl -L -o /tmp/$component.zip https://roboshop-artifacts.s3.amazonaws.com/$component.zip &>>${LOG}
   stat_check $?
 
+  echo -e "${COL}Unzipping application content${NC}"
   cd /app
   unzip /tmp/$component.zip &>>${LOG}
   stat_check $?
