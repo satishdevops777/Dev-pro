@@ -5,6 +5,8 @@ COL="\e[32m"
 NC="\e[0m"
 LOG=/tmp/roboshop.log
 user_id=$(id -u)
+component=$1
+
 
 if [ $user_id -ne 0 ]; then
   echo Script should be running with sudo
