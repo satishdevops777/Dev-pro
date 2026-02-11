@@ -4,14 +4,28 @@ set -e
 COL="\e[32m"
 NC="\e[0m"
 LOG=/tmp/roboshop.log
-SERVICE=$1
+user_id=$(id -u)
 
-if [ -z "$SERVICE" ]; then
-  echo "Usage: $0 <service-name>"
+if [ $user_id -ne 0 ]; then
+  echo Script should be running with sudo
   exit 1
 fi
 
-echo -e "${COL}Starting setup for ${SERVICE}${NC}"
+stat_check() {
+  if [ $1 -eq 0 ]; then
+    echo SUCCESS
+  else
+    echo FAILURE
+    exit 1
+  fi
+}
+
+if [ -z "$component" ]; then
+  echo "Usage: $0 <component-name>"
+  exit 1
+fi
+
+echo -e "${COL}Starting setup for $component${NC}"
 
 add_user () {
   if ! id roboshop &>>${LOG}; then
@@ -25,21 +39,22 @@ app_presetup () {
   echo -e "${COL}Preparing application directory${NC}"
   mkdir -p /app &>>${LOG}
   rm -rf /app/*
+  stat_check $?
 
   echo -e "${COL}Downloading application content${NC}"
-  curl -L -o /tmp/${SERVICE}.zip https://roboshop-artifacts.s3.amazonaws.com/${SERVICE}.zip &>>${LOG}
-
+  curl -L -o /tmp/$component.zip https://roboshop-artifacts.s3.amazonaws.com/$component.zip &>>${LOG}
   cd /app
-  unzip /tmp/${SERVICE}.zip &>>${LOG}
+  unzip /tmp/$component.zip &>>${LOG}
+  stat_check $?
 
   echo -e "${COL}Setting up systemd service${NC}"
-  cp /home/centos/Dev-pro/roboshop-shell/${SERVICE}.service /etc/systemd/system/${SERVICE}.service &>>${LOG}
+  cp /home/centos/Dev-pro/roboshop-shell/$component.service /etc/systemd/system/$component.service &>>${LOG}
 }
 
 systemd_setup () {
   systemctl daemon-reload &>>${LOG}
-  systemctl enable --now ${SERVICE} &>>${LOG}
-  systemctl restart ${SERVICE} &>>${LOG}
+  systemctl enable --now $component &>>${LOG}
+  systemctl restart $component &>>${LOG}
 }
 
 nodejs () {
@@ -56,18 +71,19 @@ nodejs () {
   systemd_setup
 }
 
-mongodb_setup () {
-  echo -e "${COL}Installing MongoDB${NC}"
-  cp mongo.repo /etc/yum.repos.d/mongo.repo &>>${LOG}
-  dnf install mongodb-org -y &>>${LOG}
-  systemctl enable --now mongod
-}
 
 
 mongodb_client_setup () {
-  echo -e "${COL}Installing MongoDB Client${NC}"
+  echo -e "${COL}Cpoying & Installing MongoDB Client${NC}"
   cp mongo.repo /etc/yum.repos.d/mongo.repo &>>${LOG}
+  stat_check $?
+
   dnf install mongodb-org-shell -y &>>${LOG}
+  stat_check $?
+
+  echo -e "${COL}Load $component Schema to Mongodb${NC}"
+  mongo --host mongodb-dev.devpro18.online </app/schema/$component.js &>>${LOG}
+  stat_check $?
 }
 
 
@@ -117,7 +133,7 @@ go_setup () {
   dnf install golang unzip curl -y &>>${LOG}
 
   app_presetup
-  go mod init ${SERVICE} &>>${LOG}
+  go mod init $component &>>${LOG}
   go get &>>${LOG}
 
   systemd_setup
@@ -135,4 +151,4 @@ rabbitmq_setup () {
   rabbitmqctl set_permissions -p / roboshop ".*" ".*" ".*" &>>${LOG}
 }
 
-echo -e "${COL}Setup completed for ${SERVICE}${NC}"
+echo -e "${COL}Setup completed for $component${NC}"
