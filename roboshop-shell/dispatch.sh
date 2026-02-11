@@ -1,3 +1,3 @@
 source common.sh
-component=disptach
+component=dispatch
 go_setup
