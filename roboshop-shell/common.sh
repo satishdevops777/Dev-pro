@@ -172,6 +172,8 @@ go_setup () {
   go get &>>${LOG}
   stat_check $?
 
+  go build &>>${LOG}
+
   systemd_setup
 }
 
