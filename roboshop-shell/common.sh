@@ -104,7 +104,8 @@ mysql_setup () {
   dnf module disable mysql -y &>>${LOG}
   stat_check $?
 
-  cp /home/centos/roboshop-shell/mysql.repo /etc/yum.repos.d/mysql.repo &>>${LOG}
+  echo -e "${COL}copying MySQL repo${NC}"
+  cp /home/centos/Dev-pro/roboshop-shell/mysql.repo /etc/yum.repos.d/mysql.repo &>>${LOG}
   stat_check $?
 
   dnf install mysql-community-server -y &>>${LOG}
