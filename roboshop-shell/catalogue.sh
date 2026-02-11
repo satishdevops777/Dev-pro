@@ -1,7 +1,7 @@
 source common.sh
 
 nodejs
-mongodb_setup 
+mongodb_client_setup
 
 echo -e "${COL}Load $1 Schema to Mongodb${NC}"
 mongo --host mongodb-dev.devpro18.online </app/schema/$1.js &>>${LOG}

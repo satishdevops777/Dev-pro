@@ -63,6 +63,14 @@ mongodb_setup () {
   systemctl enable --now mongod
 }
 
+
+mongodb_client_setup () {
+  echo -e "${COL}Installing MongoDB Client${NC}"
+  cp mongo.repo /etc/yum.repos.d/mongo.repo &>>${LOG}
+  dnf install mongodb-org-shell -y &>>${LOG}
+}
+
+
 mysql_setup () {
   echo -e "${COL}Installing MySQL${NC}"
   dnf module disable mysql -y &>>${LOG}
