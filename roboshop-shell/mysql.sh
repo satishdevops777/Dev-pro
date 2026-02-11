@@ -1,3 +1,4 @@
 source common.sh
- 
- mysql_setup
+component=mysql
+
+mysql_setup
