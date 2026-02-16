@@ -1,2 +1,4 @@
 ---
 # vars file for shipping
+component: shipping
+app_version: 1.0.1

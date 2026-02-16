@@ -1,0 +1,32 @@
+- name: Install Golang
+  ansible.builtin.dnf:
+    name:
+      - golang
+      - unzip
+      - curl
+    state: present
+
+- name: Import App Pre-requisites
+  ansible.builtin.import_tasks:
+    file: app_presetup.yml
+
+- name: Initialize Go module
+  ansible.builtin.command: go mod init {{ component }}
+  args:
+    chdir: /app
+    creates: /app/go.mod
+
+- name: Download Go dependencies
+  ansible.builtin.command: go mod tidy
+  args:
+    chdir: /app
+
+- name: Build Golang Application
+  ansible.builtin.command: go build -o {{ component }}
+  args:
+    chdir: /app
+    creates: /app/{{ component }}
+
+- name: Setup SystemD
+  ansible.builtin.import_tasks:
+    file: systemd_setup.yml

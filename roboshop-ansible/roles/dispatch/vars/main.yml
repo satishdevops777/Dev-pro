@@ -1,2 +1,4 @@
 ---
 # vars file for dispatch
+component: dispatch
+app_version: 1.0.1

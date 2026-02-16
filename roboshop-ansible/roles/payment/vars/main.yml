@@ -1,2 +1,4 @@
 ---
 # vars file for payment
+component: payment
+app_version: 1.0.1

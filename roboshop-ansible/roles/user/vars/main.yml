@@ -1,2 +1,4 @@
 ---
 # vars file for user
+component: user
+app_version: 1.0.1

@@ -1,6 +1,7 @@
-name: roboshop-ansible
-hosts: all
-become: true
-roles:
-  - {{ role_name }}
+- name: Setup RoboShop Project
+  hosts: all
+  become: yes
+  serial: 1
+  roles:
+    - "{{ role_name }}"
     

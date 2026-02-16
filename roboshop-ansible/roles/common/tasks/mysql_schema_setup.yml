@@ -1,0 +1,31 @@
+- name: Fetch MySQL connection details
+  set_fact:
+    mysql_host: "{{ lookup('amazon.aws.aws_ssm', 'roboshop.' + env + '.mysql.endpoint', region='us-east-1') }}"
+    mysql_user: "{{ lookup('amazon.aws.aws_ssm', 'roboshop.' + env + '.mysql.username', region='us-east-1') }}"
+    mysql_password: "{{ lookup('amazon.aws.aws_ssm', 'roboshop.' + env + '.mysql.password', region='us-east-1') }}"
+  no_log: true
+
+- name: Install MySQL Client
+  yum:
+    name: mysql
+    state: present
+
+- name: Get MySQL databases
+  community.mysql.mysql_info:
+    login_host: "{{ mysql_host }}"
+    login_user: "{{ mysql_user }}"
+    login_password: "{{ mysql_password }}"
+    filter: databases
+  register: mysql_info
+  no_log: true
+
+- name: Load Schema
+  community.mysql.mysql_db:
+    name: "{{ db_name }}"
+    state: import
+    target: "/app/schema/{{ component }}.sql"
+    login_host: "{{ mysql_host }}"
+    login_user: "{{ mysql_user }}"
+    login_password: "{{ mysql_password }}"
+  when: db_name not in mysql_info.databases
+  no_log: true
