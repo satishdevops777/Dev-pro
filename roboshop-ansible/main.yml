@@ -1,0 +1,6 @@
+name: roboshop-ansible
+hosts: all
+become: true
+roles:
+  - {{ role_name }}
+    
